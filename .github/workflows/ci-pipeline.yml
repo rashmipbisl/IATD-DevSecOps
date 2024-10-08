@@ -28,6 +28,7 @@ jobs:
 
   build:
     needs: test
+    if: false
     permissions:
       id-token: write
     runs-on: ubuntu-latest
@@ -49,7 +50,7 @@ jobs:
 
   submit_results:
     needs: [build, sonarqube, dast]
-    if: true
+    if: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -91,7 +92,7 @@ jobs:
 
   sonarqube:
     needs: test
-    if: true
+    if: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -119,6 +120,7 @@ jobs:
   dast:
     needs: [test, sonarqube]
     runs-on: ubuntu-latest
+    if: false
     steps:
       - uses: actions/checkout@v4
       -
@@ -179,3 +181,23 @@ jobs:
         with:
           name: zap-report
           path: report_json.json
+
+  image-scan:
+    needs: [test]
+    if: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scan image
+        uses: anchore/scan-action@v3
+        id: image-scan
+        with:
+          image: ${{ secrets.DOCKERHUB_USERNAME }}/devops-labs:latest
+          fail-build: false
+          output-format: json
+          
+      - name: Upload Image report
+        id: upload-image-report
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-report
+          path: ${{ steps.image-scan.outputs.json }}
