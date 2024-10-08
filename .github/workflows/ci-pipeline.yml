@@ -122,6 +122,9 @@ jobs:
             exit 1
           else
             echo "Zap scan passed"
+          fi
+
+          echo "All security gates passed"
 
   sonarqube:
     needs: test
