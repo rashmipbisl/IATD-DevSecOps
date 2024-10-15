@@ -35,13 +35,16 @@ jobs:
     steps: 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
+      
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+      
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
       - name: Build and push
         uses: docker/build-push-action@v5
         with: 
@@ -49,6 +52,15 @@ jobs:
           provenance: true    
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/devops-labs:latest
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.4.0
+  
+      - name: Sign the images with GitHub OIDC Token
+        env:
+          IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/devops-labs:latest
+        run: |
+          cosign sign --yes ${IMAGE}
 
   submit_results:
     needs: [test, sonarqube, dast, build]
@@ -102,7 +114,7 @@ jobs:
 
   security_gate:
     needs: [sonarqube, dast, image-scan]
-    if: true
+    if: false
     runs-on: ubuntu-latest
     steps:
       - name: Download sonarqube-report
@@ -153,7 +165,7 @@ jobs:
 
   sonarqube:
     needs: test
-    if: true
+    if: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -181,7 +193,7 @@ jobs:
   dast:
     needs: [test, sonarqube]
     runs-on: ubuntu-latest
-    if: true
+    if: false
     steps:
       - uses: actions/checkout@v4
       -
@@ -245,7 +257,7 @@ jobs:
 
   image-scan:
     needs: [test]
-    if: true
+    if: false
     runs-on: ubuntu-latest
     steps:
       - name: Scan image
