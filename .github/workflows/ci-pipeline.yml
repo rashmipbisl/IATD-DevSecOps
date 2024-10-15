@@ -63,7 +63,7 @@ jobs:
           cosign sign --yes ${IMAGE}
 
   submit_results:
-    needs: [test, build]
+    needs: [test, build, sonarqube, dast]
     if: true
     runs-on: ubuntu-latest
     steps:
